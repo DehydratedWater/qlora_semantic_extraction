@@ -1,0 +1,23 @@
+FROM nvidia/cuda:12.2.0-devel-ubuntu22.04
+
+WORKDIR /app
+
+RUN apt update && \
+    apt install -y python3-pip gcc-11 g++-11 && \
+    rm -rf /var/lib/apt/lists/*
+
+ENV CXX=g++-11 \
+    CC=gcc-11 \
+    CMAKE_ARGS="-DLLAMA_CUBLAS=on" \
+    FORCE_CMAKE=1
+
+RUN pip3 install llama-cpp-python[server]
+
+# ENTRYPOINT [ "" ]
+ENV MODEL_NAME=${MODEL_NAME:-models/llama-2-13b-chat.Q5_K_M.gguf}
+ENV N_THREADS=${N_THREADS:-1}
+
+EXPOSE 5556
+
+
+ENTRYPOINT python3 -m llama_cpp.server --model ${MODEL_NAME} --n_gpu_layers -1 --n_threads ${N_THREADS} --port 5556 --host 0.0.0.0
