@@ -1,5 +1,6 @@
 CREATE Table IF NOT EXISTS articles (
     article_id INT NOT NULL,
+    dataset TEXT NOT NULL,
     abstract TEXT NOT NULL,
     section_names TEXT NOT NULL,
     PRIMARY KEY (article_id)
