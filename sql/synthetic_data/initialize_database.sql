@@ -1,3 +1,4 @@
+
 CREATE Table IF NOT EXISTS articles (
     article_id INT NOT NULL,
     dataset TEXT NOT NULL,

@@ -80,6 +80,7 @@ x-airflow-common:
     - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
     - ${AIRFLOW_PROJ_DIR:-.}/data:/opt/airflow/data
     - ${AIRFLOW_PROJ_DIR:-.}/models:/opt/airflow/models
+    - ${AIRFLOW_PROJ_DIR:-.}/postgres-db-volume:/var/lib/postgresql/data
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on
@@ -99,7 +100,7 @@ services:
       POSTGRES_PASSWORD: airflow
       POSTGRES_DB: airflow
     volumes:
-      - postgres-db-volume:/var/lib/postgresql/data
+      - ${AIRFLOW_PROJ_DIR:-.}/postgres-db-volume:/var/lib/postgresql/data
     ports:
       - 5432:5432
     healthcheck:
