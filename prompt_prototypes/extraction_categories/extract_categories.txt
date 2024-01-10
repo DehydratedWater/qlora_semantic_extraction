@@ -1,0 +1,14 @@
+[INST] 
+Provided below segment of the text, list all specialistic terms, and ideas contained in this text, that list will be later used for mining relations between concepts in order of building graph of semantic relations. 
+
+Example:
+Format data as a JSON containing {"segment_summary": "summary ...", extracted_categories:{"<<name of category>>": [{"description": "What is idea number 1...","name": "idea_1"}, {"description": "What is term number 2...","name": "term_2"}, ...], "<<name of category>>": [{"description": "What is idea number 1...","name": "idea_1"}, {"description": "What is term number 2...","name": "term_2"}, {"description": "What is idea number 3...","name": "idea_3"}...]}. Categories should be general.
+
+Text to extract categories: ```
+for about 20 years the problem of properties of short - term changes of solar activity has been considered extensively .", "many investigators studied the short - term periodicities of the various indices of solar activity . several periodicities were detected , but the periodicities about 155 days and from the interval of @xmath3 $ ] days ( @xmath4 $ ] years ) are mentioned most often . first of them was discovered by @xcite in the occurence rate of gamma - ray flares detected by the gamma - ray spectrometer aboard the _ solar maximum mission ( smm ) . his periodicity was confirmed for other solar flares data and for the same time period @xcite .
+```
+
+Use text above to extract concepts, ideas, people, ect, find name for the category and format them into flat JSON containing lists. Return JSON within 
+json``` {...} ```
+[/INST]
+Before creating JSON with the results, containing categories matched with context independent description of interaction, I will list categories that fits into nodes of semantic graph, contained inside provided text and give them more compact and universal name:
