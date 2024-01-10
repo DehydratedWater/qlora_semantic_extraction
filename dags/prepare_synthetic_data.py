@@ -279,8 +279,8 @@ async def generate_general_categories_base():
                     openai_api_base=f"http://llm-server-{i}:5556/v1", 
                     openai_api_key="sx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
                     max_tokens=4098,
-                    request_timeout=500,
-                    max_retries=1,
+                    request_timeout=5000,
+                    max_retries=0,
                     model_kwargs={
                         "logit_bias": {},
                     },
@@ -317,7 +317,7 @@ async def generate_general_categories_base():
 
     print("Splitting results")
 
-    num_of_batches = 4
+    num_of_batches = number_of_llms
     size = len(results)
     batch_size = int(size / num_of_batches)
 

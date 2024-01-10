@@ -17,7 +17,7 @@ while getopts n:m:s:t: flag
 do
     case "${flag}" in
         n) num=${OPTARG};;
-        i) model=${OPTARG};;
+        m) model=${OPTARG};;
         s) split=${OPTARG};;
         t) n_threads=${OPTARG};;
     esac
@@ -31,18 +31,21 @@ echo "Parameter n_threads: $n_threads"
 # entrypoint="python3 -m llama_cpp.server --model $image --n_gpu_layers 200 --port 5556 --host 0.0.0.0"
 
 
+# ENV N_CTX=${N_CTX:-4098}
+# ENV N_BATCH=${N_BATCH:-1024}
+
 for i in $(seq 1 $num)
 do
     echo "Starting docker llm-server-$i"
     docker remove "/llm-server-$i"
-
+    # memlock=16384:16384
     if [ "$split" -eq 1 ]; then
-        docker run -e MODEL_NAME=$model -e N_THREADS=$n_threads --gpus all --ulimit memlock=16384:16384 --network $network -d -v "$(pwd)/models:/app/models" --name "llm-server-$i" llm-server
+        docker run -e MODEL_NAME=$model -e N_THREADS=$n_threads -e N_BATCH=2048 -e N_CTX=4096 --gpus all --ulimit memlock=16384:16384 --network $network -d -v "$(pwd)/models:/app/models" --name "llm-server-$i" llm-server
     else
         mod=$(($i % 2))
         echo "mod=$mod"
         device="device=$mod"
-        docker run -e MODEL_NAME=$model -e N_THREADS=$n_threads --gpus $device --ulimit memlock=16384:16384 --network $network -d -v "$(pwd)/models:/app/models" --name "llm-server-$i" llm-server
+        docker run -e MODEL_NAME=$model -e N_THREADS=$n_threads -e N_BATCH=2048 -e N_CTX=4096 --gpus $device --ulimit memlock=16384:16384 --network $network -d -v "$(pwd)/models:/app/models" --name "llm-server-$i" llm-server
     fi
     
 done
