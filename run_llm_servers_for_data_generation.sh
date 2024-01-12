@@ -5,6 +5,8 @@ num=4
 model="models/llama-2-13b-chat.Q5_K_M.gguf"
 split=0
 n_threads=1
+n_batch=2048
+n_ctx=4096
 
 parent_dir_name=$PWD
 last=$(echo $parent_dir_name | awk -F'/' '{print $NF}')
@@ -20,6 +22,8 @@ do
         m) model=${OPTARG};;
         s) split=${OPTARG};;
         t) n_threads=${OPTARG};;
+        b) n_batch=${N_BATCH};;
+        c) n_ctx=${N_CTX};;
     esac
 done
 
@@ -40,12 +44,12 @@ do
     docker remove "/llm-server-$i"
     # memlock=16384:16384
     if [ "$split" -eq 1 ]; then
-        docker run -e MODEL_NAME=$model -e N_THREADS=$n_threads -e N_BATCH=2048 -e N_CTX=4096 --gpus all --ulimit memlock=16384:16384 --network $network -d -v "$(pwd)/models:/app/models" --name "llm-server-$i" llm-server
+        docker run -e MODEL_NAME=$model -e N_THREADS=$n_threads -e N_BATCH=$n_batch -e N_CTX=$n_ctx --gpus all --ulimit memlock=16384:16384 --network $network -d -v "$(pwd)/models:/app/models" --name "llm-server-$i" llm-server
     else
         mod=$(($i % 2))
         echo "mod=$mod"
         device="device=$mod"
-        docker run -e MODEL_NAME=$model -e N_THREADS=$n_threads -e N_BATCH=2048 -e N_CTX=4096 --gpus $device --ulimit memlock=16384:16384 --network $network -d -v "$(pwd)/models:/app/models" --name "llm-server-$i" llm-server
+        docker run -e MODEL_NAME=$model -e N_THREADS=$n_threads -e N_BATCH=$n_batch -e N_CTX=$n_ctx --gpus $device --ulimit memlock=16384:16384 --network $network -d -v "$(pwd)/models:/app/models" --name "llm-server-$i" llm-server
     fi
     
 done

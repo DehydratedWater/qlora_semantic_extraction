@@ -271,7 +271,7 @@ async def generate_general_categories_base():
 
     model = "models/llama-2-13b-chat.Q4_K_M.gguf"
 
-    number_of_llms = 4 
+    number_of_llms = 2 
 
     llms = [
         ChatOpenAI(temperature=0.7,
@@ -313,7 +313,7 @@ async def generate_general_categories_base():
     tokenizer = LlamaTokenizerFast.from_pretrained("hf-internal-testing/llama-tokenizer", 
                                                    cache_dir='/opt/airflow/data/hf/models',)
     hook = PostgresHook(postgres_conn_id='synthetic_data')
-    results = hook.get_records(sql=f"SELECT * FROM article_parts LIMIT 20")
+    results = hook.get_records(sql=f"SELECT * FROM article_parts LIMIT {number_of_llms*5};")
 
     print("Splitting results")
 
