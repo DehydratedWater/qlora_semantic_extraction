@@ -271,7 +271,7 @@ async def generate_general_categories_base():
 
     model = "models/llama-2-13b-chat.Q4_K_M.gguf"
 
-    number_of_llms = 2 
+    number_of_llms = 4 
 
     llms = [
         ChatOpenAI(temperature=0.7,
