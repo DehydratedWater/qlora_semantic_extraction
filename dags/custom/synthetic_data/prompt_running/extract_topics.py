@@ -64,6 +64,21 @@ async def run_chain(sr: list, chain: LLMChain):
         print(f"Finished batch {i} / {len(sr)}")
         # print(len(sr))
 
+
+async def run_chains(sr: list, chain: LLMChain, register: set[int]):
+
+    for i, r in enumerate(sr):
+        if i in register:
+            continue
+        else:
+            register.add(i)
+
+        result = await chain.arun(r[1])
+        print(result)
+        print(f"Finished batch {len(register)} / {len(sr)}")
+
+
+
 async def generate_general_categories_base(num_of_llms: int):
 
     model = "models/llama-2-13b-chat.Q4_K_M.gguf"
@@ -75,7 +90,7 @@ async def generate_general_categories_base(num_of_llms: int):
                     model=model, 
                     openai_api_base=f"http://llm-server-{i}:5556/v1", 
                     openai_api_key="sx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-                    max_tokens=4096/2,
+                    max_tokens=4096,
                     request_timeout=5000,
                     max_retries=0,
                     model_kwargs={
@@ -114,20 +129,29 @@ async def generate_general_categories_base(num_of_llms: int):
 
     print("Splitting results")
 
-    num_of_batches = number_of_llms
-    size = len(results)
-    batch_size = int(size / num_of_batches)
-
-    splitted_results = [results[r*batch_size: (r+1)*batch_size] for r in range(num_of_batches)]
-
-    print("Number of arrays",len(splitted_results))
     list_of_tasks = []
-    for sr, chain in zip(splitted_results, chain_array):
+    common_register = set()
+    for chain in chain_array:
         print("Creating task")
-        list_of_tasks.append(run_chain(sr, chain))
-    
-    
+        list_of_tasks.append(run_chains(results, chain, common_register))
+
     await asyncio.gather(*list_of_tasks)
+    # num_of_batches = number_of_llms
+    # size = len(results)
+    # batch_size = int(size / num_of_batches)
+
+
+
+    # splitted_results = [results[r*batch_size: (r+1)*batch_size] for r in range(num_of_batches)]
+
+    # print("Number of arrays",len(splitted_results))
+    # list_of_tasks = []
+    # for sr, chain in zip(splitted_results, chain_array):
+    #     print("Creating task")
+    #     list_of_tasks.append(run_chain(sr, chain))
+    
+    
+    # await asyncio.gather(*list_of_tasks)
     # segment = result[0][1]
 
     # len_of_input_prompt = len(tokenizer.encode(prompt.template.format(text_to_extract=segment)))
