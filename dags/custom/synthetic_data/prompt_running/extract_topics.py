@@ -72,10 +72,14 @@ async def run_chains(sr: list, chain: LLMChain, register: set[int]):
             continue
         else:
             register.add(i)
-
+        constructed_prompt = chain.prep_prompts([{"text_to_extract": r}])[0][0].text
         result = await chain.arun(r[1])
+        print("PROMPT ****************")
+        print(constructed_prompt)
+        print("RESULT ****************")
         print(result)
-        print(f"Finished batch {len(register)} / {len(sr)}")
+
+        print(f"Finished batch {i} / {len(sr)}")
 
 
 
@@ -116,7 +120,7 @@ async def generate_general_categories_base(num_of_llms: int):
             llm=llm, 
             prompt=prompt,
             output_parser=ExtractJsonParser(),
-            verbose=True,
+            # verbose=True,
         ) for llm in llms
     ]
 
@@ -136,29 +140,7 @@ async def generate_general_categories_base(num_of_llms: int):
         list_of_tasks.append(run_chains(results, chain, common_register))
 
     await asyncio.gather(*list_of_tasks)
-    # num_of_batches = number_of_llms
-    # size = len(results)
-    # batch_size = int(size / num_of_batches)
 
-
-
-    # splitted_results = [results[r*batch_size: (r+1)*batch_size] for r in range(num_of_batches)]
-
-    # print("Number of arrays",len(splitted_results))
-    # list_of_tasks = []
-    # for sr, chain in zip(splitted_results, chain_array):
-    #     print("Creating task")
-    #     list_of_tasks.append(run_chain(sr, chain))
-    
-    
-    # await asyncio.gather(*list_of_tasks)
-    # segment = result[0][1]
-
-    # len_of_input_prompt = len(tokenizer.encode(prompt.template.format(text_to_extract=segment)))
-    # print(f"len_of_input_prompt: {len_of_input_prompt}")
-
-    # generated_json = chain1.run(segment)
-    # print(generated_json)
 
 def generate_general_categories_async(num_of_llms: int):
    loop = asyncio.get_event_loop()

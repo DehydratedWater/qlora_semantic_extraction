@@ -7,11 +7,14 @@ from airflow.providers.postgres.operators.postgres import PostgresOperator
 
 from datetime import datetime
 from custom.synthetic_data.prompt_running.extract_topics import generate_general_categories_async
+from custom.synthetic_data.prompt_running.extract_article_summary import generate_article_summaries_async
 from custom.synthetic_data.inserting_articles import insert_articles
 # os environment variables must be declared before importing datasets
 # once datasets is imported, it will use current values and does not update them
 
 import os
+
+
 try:
     user_paths = os.environ['PYTHONPATH'].split(os.pathsep)
 except KeyError:
@@ -76,7 +79,7 @@ def test_dataset():
 
 
 with DAG(
-    'prepare_synthetic_data_v4',
+    'prepare_synthetic_data_v5',
     default_args=default_args,
     description='Prepare synthetic data',
     schedule_interval='@once',
@@ -112,6 +115,16 @@ with DAG(
         python_callable=test_dataset,
     )
 
+    generate_article_summaries = PythonOperator(
+        task_id='generate_article_summaries',
+        python_callable=generate_article_summaries_async,
+        op_kwargs={
+            'num_of_llms': 4,
+            'max_tokens': 4096,
+        }
+    )
+
+
     generate_general_categories = PythonOperator(
         task_id='generate_general_categories',
         python_callable=generate_general_categories_async,
@@ -123,4 +136,5 @@ with DAG(
     download_dataset >> test_dataset
     download_dataset >> insert_articles
     initialize_database >> insert_articles
-    insert_articles >> generate_general_categories
+    insert_articles >> generate_article_summaries
+    generate_article_summaries >> generate_general_categories

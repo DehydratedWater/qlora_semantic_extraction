@@ -11,7 +11,7 @@ Text to extract categories: ```
 ```
 
 Use text above to extract concepts, ideas, people, ect, find name for the category and format them into flat JSON containing lists. Return JSON within 
-json``` {{...}} ```
+```json {{...}} ```
 [/INST]
 Before creating JSON with the short segment summary and results, containing categories matched with context independent description of interaction, I will list categories that fits into nodes of semantic graph, contained inside provided text and give them more compact and universal name:
 """
