@@ -121,6 +121,9 @@ with DAG(
         op_kwargs={
             'num_of_llms': 4,
             'max_tokens': 4096,
+            'amount_to_process': 10000, 
+            'summary_variant': 0, 
+            'overwrite_variant': False
         }
     )
 

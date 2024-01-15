@@ -1,7 +1,7 @@
    
 article_summary_prompt = """
 [INST] 
-Provided below abstract and list of sections of the article, generate summary for provided text. Summary should contain not only most important sentences, but also most important ideas, concepts, people, ect.
+Your task is to generate summary of the scientific article. Provided below abstract and list of sections of the article, generate summary for provided text. Summary should contain not only most important sentences, but also most important ideas, concepts, people, ect.
 
 To generate summary use provided abstract: ```
 {abstract}

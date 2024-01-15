@@ -13,41 +13,7 @@ from custom.synthetic_data.prompt_running.article_summary_prompt import article_
 from langchain.text_splitter import TokenTextSplitter
 
 
-class ExtractArticleSummaryParser(BaseLLMOutputParser):
-    def parse_result(self, result: list[Generation]) -> str:
-        final_results = []
-
-        for r in result:
-            extracted_json = None
-            
-            fail = False
-            try:
-                raw_text = r.text
-                print(raw_text)
-                start = raw_text.find("'''segment_summary")
-                end = len(raw_text) - raw_text[::-1].find("'''")
-                raw_text = raw_text[start:end]
-                extracted_json = json.loads(raw_text)
-                final_results.append(extracted_json)
-                fail = False
-            except:
-                fail = True
-
-            if fail:
-                final_results.append(None)
-            
-                    
-        return final_results
-    
-async def run_chain(sr: list, chain: LLMChain):
-    for i, r in enumerate(sr):
-        result = await chain.arun(r[1])
-        print(result)
-        print(f"Finished batch {i} / {len(sr)}")
-        # print(len(sr))
-
-
-async def run_chains(sr: list, chain: LLMChain, register: set[int], tokenizer: LlamaTokenizerFast):
+async def run_chains(sr: list, chain: LLMChain, register: set[int], tokenizer: LlamaTokenizerFast, summary_variant: int):
 
     for i, r in enumerate(sr):
         if i in register:
@@ -55,7 +21,7 @@ async def run_chains(sr: list, chain: LLMChain, register: set[int], tokenizer: L
         else:
             register.add(i)
 
-            input_data = {"abstract": str(r[0]), "list_of_sections": str(r[1])}
+            input_data = {"abstract": str(r[1]), "list_of_sections": str(r[2])}
             # print(f"Przycinanie 1: {input_data}")
             constructed_prompt = chain.prep_prompts([input_data])[0][0].text
             # print("Created prompt 1")
@@ -69,8 +35,8 @@ async def run_chains(sr: list, chain: LLMChain, register: set[int], tokenizer: L
                     chunk_overlap=256,
                 )
 
-                new_abstract = text_splitter.split_text(str(r[0]))[0]
-                list_of_sections = text_splitter.split_text(str(r[1]))[0]
+                new_abstract = text_splitter.split_text(str(r[1]))[0]
+                list_of_sections = text_splitter.split_text(str(r[2]))[0]
 
                 input_data = {"abstract": new_abstract, "list_of_sections": list_of_sections}
                 # print(f"Przycinanie 2: {input_data}")
@@ -89,9 +55,25 @@ async def run_chains(sr: list, chain: LLMChain, register: set[int], tokenizer: L
 
             print(f"Finished batch {i} / {len(sr)}")
 
+            hook = PostgresHook(postgres_conn_id='synthetic_data')
+            hook.insert_rows(
+                table="short_article_summary",
+                rows=[(r[0], result, summary_variant)],
+                replace=False,
+                commit_every=1,
+                target_fields=["article_id", "article_summary", "summary_variant"],
+            )
+            
 
 
-async def generate_article_summaries_base(num_of_llms: int, max_tokens: int):
+
+async def generate_article_summaries_base(
+        num_of_llms: int, 
+        max_tokens: int, 
+        amount_to_process: int, 
+        summary_variant: int, 
+        overwrite_variant: bool
+        ):
 
     model = "models/llama-2-13b-chat.Q4_K_M.gguf"
 
@@ -139,7 +121,25 @@ async def generate_article_summaries_base(num_of_llms: int, max_tokens: int):
     print("Loading tokenizer")
 
     hook = PostgresHook(postgres_conn_id='synthetic_data')
-    results = hook.get_records(sql=f"SELECT abstract, section_names FROM articles LIMIT {number_of_llms*5};")
+    # results = hook.get_records(sql=f"SELECT abstract, section_names FROM articles LIMIT {number_of_llms*5};")
+
+    # results = hook.get_records(sql=f"SELECT abstract, section_names FROM articles where article_id not in  LIMIT {number_of_llms*5};")
+
+    if overwrite_variant:
+        print("Deleting old summaries")
+        hook.run(sql=f"DELETE FROM short_article_summary WHERE summary_variant = {summary_variant};")    
+
+    results = hook.get_records(sql=f"""
+SELECT article_id, abstract, section_names 
+FROM articles 
+where article_id not in (
+	select sas.article_id 
+	FROM short_article_summary sas 
+	where sas.summary_variant = {summary_variant}
+) and article_id < {amount_to_process}
+order by article_id 
+LIMIT {amount_to_process};
+""")
 
     print("Splitting results")
     tokenizer = LlamaTokenizerFast.from_pretrained("hf-internal-testing/llama-tokenizer", 
@@ -148,12 +148,12 @@ async def generate_article_summaries_base(num_of_llms: int, max_tokens: int):
     common_register = set()
     for chain in chain_array:
         print("Creating task")
-        list_of_tasks.append(run_chains(results, chain, common_register, tokenizer))
+        list_of_tasks.append(run_chains(results, chain, common_register, tokenizer, summary_variant))
 
     await asyncio.gather(*list_of_tasks)
 
 
-def generate_article_summaries_async(num_of_llms: int, max_tokens: int):
+def generate_article_summaries_async(num_of_llms: int, max_tokens: int, amount_to_process: int, summary_variant: int, overwrite_variant: bool = False):
    loop = asyncio.get_event_loop()
-   result = loop.run_until_complete(generate_article_summaries_base(num_of_llms, max_tokens))
+   result = loop.run_until_complete(generate_article_summaries_base(num_of_llms, max_tokens, amount_to_process, summary_variant, overwrite_variant))
    return result
