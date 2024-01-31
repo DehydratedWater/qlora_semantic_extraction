@@ -33,6 +33,7 @@ Example of the JSON with categories and their descriptions:
     ]
 }}
 ```
+Keep descriptions short and concise.
 Extract all important relations between entities in the text. Return only relations that are important for the text. Return JSON:
 [/INST]
 Here is JSON containing all relations extracted from provided TEXT_TO_EXTRACT:

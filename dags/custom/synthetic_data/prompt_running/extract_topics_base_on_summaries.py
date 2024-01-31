@@ -136,14 +136,28 @@ async def generate_topics_from_parts_and_summaries_base(
         print("Deleting old summaries")
         hook.run(sql=f"DELETE FROM short_article_summary WHERE summary_variant = {summary_variant};")    
 
-    query = """
-select sas.summary_id, ap.part_id, ap.part_text, sas.article_summary 
+    query = f"""
+select sas.summary_id, ap.part_id, ap.part_text, sas.article_summary
 from article_part_register apr
 join article_parts ap on ap.part_id  = apr.part_id  
 join short_article_summary sas on sas.article_id = apr.article_id 
-order by sas.summary_id, apr.part_id
+where sas.summary_id not in (
+select distinct ept.article_summary_id 
+from extracted_part_topics ept
+) and ap.part_id not in (
+select distinct ept.part_id
+from extracted_part_topics ept
+)
 ;
-    """
+"""
+#     query = """
+# select sas.summary_id, ap.part_id, ap.part_text, sas.article_summary 
+# from article_part_register apr
+# join article_parts ap on ap.part_id  = apr.part_id  
+# join short_article_summary sas on sas.article_id = apr.article_id 
+# order by sas.summary_id, apr.part_id
+# ;
+#     """
 
 #     results = hook.get_records(sql=f"""
 # SELECT article_id, abstract, section_names 
