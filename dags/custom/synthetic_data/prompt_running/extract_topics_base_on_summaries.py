@@ -141,6 +141,7 @@ select sas.summary_id, ap.part_id, ap.part_text, sas.article_summary
 from article_part_register apr
 join article_parts ap on ap.part_id  = apr.part_id  
 join short_article_summary sas on sas.article_id = apr.article_id 
+order by sas.summary_id, apr.part_id
 ;
     """
 
