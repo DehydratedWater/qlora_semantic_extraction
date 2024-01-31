@@ -1,25 +1,43 @@
    
 extracton_prompt = """
 [INST] 
-Create JSON with short segment summary and results, containing categories matched with context independent description of interaction.
-Provided below segment of the text, list all specialistic terms, and ideas contained in this text, that list will be later used for mining relations between concepts in order of building graph of semantic relations. 
-
-Example:
-Format data as a JSON containing {{"segment_summary": "summary ...", extracted_categories:{{"<<name of category>>": [{{"description": "What is idea number 1...","name": "idea_1"}}, {{"description": "What is term number 2...","name": "term_2"}}, ...], "<<name of category>>": [{{"description": "What is idea number 1...","name": "idea_1"}}, {{"description": "What is term number 2...","name": "term_2"}}, {{"description": "What is idea number 3...","name": "idea_3"}}...]}}. Categories should be general.
-
-Here is a summary for article that contains following text segment, use it as interpretation context: ```
+Create JSON that extracts all important relations between entities in the text. Text is a part of scientific article.
+To help with the task here is a summary of the full article, use it as interpretation context: ```
 {summary}
 ```
 
-Text to build JSON with categories and their descriptions: ```
+Your task is to extract all important relations between entities in the text. To help with the task here is a summary of the full article, use it as interpretation context: ```
+TEXT_TO_EXTRACT -> Build JSON with categories and their descriptions: ```
 {text_to_extract}
 ```
 Use this text for building JSON with categories and their descriptions.
 
-Use text above to extract concepts, ideas, people, ect, find name for the category and format them into flat JSON containing lists. Return JSON within 
-```json {{...}} ```
+Example of the JSON with categories and their descriptions:
+```json
+{{
+    "description": "This part of the article describes effects of caffeine on human body.",
+    "list_of_entities": ["dopamine", "D1", "D2", "D3", "D4", "D5", "dopamine receptors", "adenosine", "A1", "A2A", "A2B", "A3", "caffeine"],
+    "relations": [
+        {{
+            "description": "Caffeine is an antagonist of adenosine receptors.",
+            "source_entity": "caffeine",
+            "target_entity": "adenosine"
+            "strenght": "strong"
+        }},
+        {{
+            "description": "Activation of adenosine receptors leads to inhibition of dopamine receptors.",
+            "source_entity": "adenosine",
+            "target_entity": "dopamine receptors"
+            "strenght": "strong"
+        }}
+    ]
+}}
+```
+Extract all important relations between entities in the text. Return only relations that are important for the text. Return JSON:
 [/INST]
-Here is a JSON with short segment summary and results, containing categories matched with context independent description of interaction: 
+Here is JSON containing all relations extracted from provided TEXT_TO_EXTRACT:
+{{
+    "description": "
 """
 
 # Before creating JSON with the short segment summary and results, containing categories matched with context independent description of interaction, I will list categories that fits into nodes of semantic graph, contained inside provided text and give them more compact and universal name:
