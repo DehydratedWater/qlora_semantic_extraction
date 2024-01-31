@@ -59,7 +59,7 @@ async def run_chains(sr: list, chain: LLMChain, register: set[int], tokenizer: L
                 hook = PostgresHook(postgres_conn_id='synthetic_data')
                 hook.insert_rows(
                     table="extracted_part_topics",
-                    rows=[(r[0], 0, result, r[1])],
+                    rows=[(r[1], 0, result, r[0])],
                     replace=False,
                     commit_every=1,
                     target_fields=["part_id", "topics_variant", "part_topics", "article_summary_id"],
