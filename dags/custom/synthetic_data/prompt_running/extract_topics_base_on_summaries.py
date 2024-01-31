@@ -9,7 +9,7 @@ from langchain.chat_models import ChatOpenAI
 from transformers import LlamaTokenizerFast
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 from langchain.chains import AnalyzeDocumentChain
-from custom.synthetic_data.prompt_running.article_summary_prompt import article_summary_prompt
+from custom.synthetic_data.prompt_running.topic_extraction_prompt import extracton_prompt
 from langchain.text_splitter import TokenTextSplitter
 
 
@@ -21,7 +21,7 @@ async def run_chains(sr: list, chain: LLMChain, register: set[int], tokenizer: L
         else:
             register.add(i)
 
-            input_data = {"abstract": str(r[1]), "list_of_sections": str(r[2])}
+            input_data = {"text_to_extract": str(r[2]), "summary": str(r[3])}
             # print(f"Przycinanie 1: {input_data}")
             constructed_prompt = chain.prep_prompts([input_data])[0][0].text
             # print("Created prompt 1")
@@ -35,10 +35,10 @@ async def run_chains(sr: list, chain: LLMChain, register: set[int], tokenizer: L
                     chunk_overlap=256,
                 )
 
-                new_abstract = text_splitter.split_text(str(r[1]))[0]
-                list_of_sections = text_splitter.split_text(str(r[2]))[0]
+                text_to_extract = text_splitter.split_text(str(r[2]))[0]
+                summary = text_splitter.split_text(str(r[3]))[0]
 
-                input_data = {"abstract": new_abstract, "list_of_sections": list_of_sections}
+                input_data = {"text_to_extract": text_to_extract, "summary": summary}
                 # print(f"Przycinanie 2: {input_data}")
                 constructed_prompt = chain.prep_prompts([input_data])[0][0].text
                 # print("Created prompt 2")
@@ -58,11 +58,11 @@ async def run_chains(sr: list, chain: LLMChain, register: set[int], tokenizer: L
 
                 hook = PostgresHook(postgres_conn_id='synthetic_data')
                 hook.insert_rows(
-                    table="short_article_summary",
-                    rows=[(r[0], result, summary_variant)],
+                    table="extracted_part_topics",
+                    rows=[(r[0], 0, result, r[1])],
                     replace=False,
                     commit_every=1,
-                    target_fields=["article_id", "article_summary", "summary_variant"],
+                    target_fields=["part_id", "topics_variant", "part_topics", "article_summary_id"],
                 )
             except Exception as e:
                 print(f"Error while processing {i} / {len(sr)}")
@@ -74,7 +74,7 @@ async def run_chains(sr: list, chain: LLMChain, register: set[int], tokenizer: L
 
 
 
-async def generate_article_summaries_base(
+async def generate_topics_from_parts_and_summaries_base(
         num_of_llms: int, 
         max_tokens: int, 
         amount_to_process: int, 
@@ -106,7 +106,7 @@ async def generate_article_summaries_base(
     print("Loading LLMs")
 
     prompt = PromptTemplate(
-        template=article_summary_prompt, 
+        template=extracton_prompt, 
         input_variables=["abstract", "list_of_sections"],
         
     )
@@ -136,17 +136,28 @@ async def generate_article_summaries_base(
         print("Deleting old summaries")
         hook.run(sql=f"DELETE FROM short_article_summary WHERE summary_variant = {summary_variant};")    
 
-    results = hook.get_records(sql=f"""
-SELECT article_id, abstract, section_names 
-FROM articles 
-where article_id not in (
-	select sas.article_id 
-	FROM short_article_summary sas 
-	where sas.summary_variant = {summary_variant}
-) and article_id < {amount_to_process}
-order by article_id 
-LIMIT {amount_to_process};
-""")
+    query = """
+select sas.article_id, ap.part_id, ap.part_text, sas.article_summary 
+from article_part_register apr
+join article_parts ap on ap.part_id  = apr.part_id  
+join short_article_summary sas on sas.article_id = apr.article_id 
+;
+    """
+
+#     results = hook.get_records(sql=f"""
+# SELECT article_id, abstract, section_names 
+# FROM articles 
+# where article_id not in (
+# 	select sas.article_id 
+# 	FROM short_article_summary sas 
+# 	where sas.summary_variant = {summary_variant}
+# ) and article_id < {amount_to_process}
+# order by article_id 
+# LIMIT {amount_to_process};
+# """)
+
+
+    results = hook.get_records(sql=query)
 
     print("Splitting results")
     tokenizer = LlamaTokenizerFast.from_pretrained("hf-internal-testing/llama-tokenizer", 
@@ -160,7 +171,7 @@ LIMIT {amount_to_process};
     await asyncio.gather(*list_of_tasks)
 
 
-def generate_article_summaries_async(num_of_llms: int, max_tokens: int, amount_to_process: int, summary_variant: int, overwrite_variant: bool = False):
+def generate_topics_from_parts_and_summaries_async(num_of_llms: int, max_tokens: int, amount_to_process: int, summary_variant: int, overwrite_variant: bool = False):
    loop = asyncio.get_event_loop()
-   result = loop.run_until_complete(generate_article_summaries_base(num_of_llms, max_tokens, amount_to_process, summary_variant, overwrite_variant))
+   result = loop.run_until_complete(generate_topics_from_parts_and_summaries_base(num_of_llms, max_tokens, amount_to_process, summary_variant, overwrite_variant))
    return result

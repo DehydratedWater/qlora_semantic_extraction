@@ -129,7 +129,14 @@ async def generate_general_categories_base(num_of_llms: int):
     tokenizer = LlamaTokenizerFast.from_pretrained("hf-internal-testing/llama-tokenizer", 
                                                    cache_dir='/opt/airflow/data/hf/models',)
     hook = PostgresHook(postgres_conn_id='synthetic_data')
-    results = hook.get_records(sql=f"SELECT * FROM article_parts LIMIT {number_of_llms*5};")
+
+    query = """
+    select ap.part_text, sas.article_summary 
+    from article_part_register apr
+    join article_parts ap on ap.part_id  = apr.part_id  
+    join short_article_summary sas on sas.article_id = apr.article_id ;
+    """
+    results = hook.get_records(sql=query)
 
     print("Splitting results")
 

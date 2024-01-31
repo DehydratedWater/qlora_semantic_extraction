@@ -14,6 +14,8 @@ from custom.synthetic_data.inserting_articles import insert_articles
 
 import os
 
+from custom.synthetic_data.prompt_running.extract_topics_base_on_summaries import generate_topics_from_parts_and_summaries_async
+
 
 try:
     user_paths = os.environ['PYTHONPATH'].split(os.pathsep)
@@ -130,9 +132,13 @@ with DAG(
 
     generate_general_categories = PythonOperator(
         task_id='generate_general_categories',
-        python_callable=generate_general_categories_async,
+        python_callable=generate_topics_from_parts_and_summaries_async,
         op_kwargs={
             'num_of_llms': 4,
+            'max_tokens': 4096,
+            'amount_to_process': 10000, 
+            'summary_variant': 0, 
+            'overwrite_variant': False
         }
     )
 
