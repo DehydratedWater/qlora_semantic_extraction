@@ -137,7 +137,7 @@ async def generate_topics_from_parts_and_summaries_base(
         hook.run(sql=f"DELETE FROM short_article_summary WHERE summary_variant = {summary_variant};")    
 
     query = """
-select sas.article_id, ap.part_id, ap.part_text, sas.article_summary 
+select sas.summary_id, ap.part_id, ap.part_text, sas.article_summary 
 from article_part_register apr
 join article_parts ap on ap.part_id  = apr.part_id  
 join short_article_summary sas on sas.article_id = apr.article_id 
