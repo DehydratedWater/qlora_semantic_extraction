@@ -148,6 +148,7 @@ from extracted_part_topics ept
 select distinct ept.part_id
 from extracted_part_topics ept
 )
+order by sas.summary_id, apr.part_id
 ;
 """
 #     query = """
