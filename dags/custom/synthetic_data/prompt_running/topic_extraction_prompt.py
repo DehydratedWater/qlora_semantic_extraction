@@ -21,19 +21,20 @@ Example of the JSON with categories and their descriptions:
         {{
             "description": "Caffeine is an antagonist of adenosine receptors.",
             "source_entity": "caffeine",
-            "target_entity": "adenosine"
+            "target_entity": "adenosine",
             "strenght": "strong"
         }},
         {{
             "description": "Activation of adenosine receptors leads to inhibition of dopamine receptors.",
             "source_entity": "adenosine",
-            "target_entity": "dopamine receptors"
+            "target_entity": "dopamine receptors",
             "strenght": "strong"
         }}
     ]
 }}
 ```
 Keep descriptions short and concise.
+After JSON, at the end write <<END>> to signal the end of the task.
 Extract all important relations between entities in the text. Return only relations that are important for the text. Return JSON:
 [/INST]
 Here is JSON containing all relations extracted from provided TEXT_TO_EXTRACT:

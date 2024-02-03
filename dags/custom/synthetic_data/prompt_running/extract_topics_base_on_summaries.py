@@ -96,9 +96,11 @@ async def generate_topics_from_parts_and_summaries_base(
                     # verbose=True,
                     max_retries=0,
                     model_kwargs={
+                        "stop": ["<<END>>"],
                         "logit_bias": {},
                     },
                     streaming=False,
+                    
                     )
         for i in range(1, 1+number_of_llms)
     ]
