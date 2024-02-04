@@ -71,7 +71,7 @@ async def run_chains(sr: list, chain: LLMChain, register: set[int], tokenizer: L
                 
                 continue
             
-
+  
 
 
 async def generate_topics_from_parts_and_summaries_base(
@@ -104,6 +104,23 @@ async def generate_topics_from_parts_and_summaries_base(
                     )
         for i in range(1, 1+number_of_llms)
     ]
+
+    # llms.append(
+    #     ChatOpenAI(temperature=0.7,
+    #                 model=model, 
+    #                 openai_api_base=f"http://192.168.0.90:5556/v1", 
+    #                 openai_api_key="sx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    #                 max_tokens=max_tokens,
+    #                 request_timeout=3600,
+    #                 # verbose=True,
+    #                 max_retries=0,
+    #                 model_kwargs={
+    #                     "stop": ["<<END>>"],
+    #                     "logit_bias": {},
+    #                 },
+    #                 streaming=False,
+    #                 )
+    # )
 
     print("Loading LLMs")
 
