@@ -134,7 +134,7 @@ with DAG(
         task_id='generate_general_categories',
         python_callable=generate_topics_from_parts_and_summaries_async,
         op_kwargs={
-            'num_of_llms': 3,
+            'num_of_llms': 2,
             'max_tokens': 4096,
             'amount_to_process': 10000, 
             'summary_variant': 0, 

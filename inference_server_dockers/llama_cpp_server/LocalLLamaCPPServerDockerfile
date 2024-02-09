@@ -23,4 +23,4 @@ ENV N_BATCH=${N_BATCH:-1024}
 EXPOSE 5556
 
 
-ENTRYPOINT python3 -m llama_cpp.server --model ${MODEL_NAME} --n_gpu_layers -1 --n_threads ${N_THREADS} --n_ctx ${N_CTX} --n_batch ${N_BATCH} --port 5556 --host 0.0.0.0
+ENTRYPOINT python3 -m llama_cpp.server --model ${MODEL_NAME} --n_gpu_layers -1 --n_threads ${N_THREADS} --use_mmap False --n_ctx ${N_CTX} --n_batch ${N_BATCH} --port 5556 --host 0.0.0.0
