@@ -152,9 +152,17 @@ async def generate_topics_from_parts_and_summaries_base(
     # results = hook.get_records(sql=f"SELECT abstract, section_names FROM articles where article_id not in  LIMIT {number_of_llms*5};")
 
     if overwrite_variant:
-        print("Deleting old summaries")
-        hook.run(sql=f"DELETE FROM short_article_summary WHERE summary_variant = {summary_variant};")    
+        print("Deleting old parts topics")
+        hook.run(sql=f"DELETE FROM extracted_part_topics WHERE topics_variant = {summary_variant};")    
 
+    already_processed = hook.get_records(sql=f"SELECT COUNT(*) FROM extracted_part_topics WHERE topics_variant = {summary_variant};")
+    print(f"Already processed: {already_processed[0][0]}")
+    if already_processed[0][0] >= amount_to_process:
+        print(f"Already processed: {already_processed[0][0]}/{amount_to_process}")
+        return
+
+    still_to_process = amount_to_process - already_processed[0][0]
+    print(f"Still to process: {still_to_process}")
     query = f"""
 select sas.summary_id, ap.part_id, ap.part_text, sas.article_summary
 from article_part_register apr
@@ -168,29 +176,9 @@ select distinct ept.part_id
 from extracted_part_topics ept
 )
 order by sas.summary_id, apr.part_id
+limit {still_to_process}
 ;
 """
-#     query = """
-# select sas.summary_id, ap.part_id, ap.part_text, sas.article_summary 
-# from article_part_register apr
-# join article_parts ap on ap.part_id  = apr.part_id  
-# join short_article_summary sas on sas.article_id = apr.article_id 
-# order by sas.summary_id, apr.part_id
-# ;
-#     """
-
-#     results = hook.get_records(sql=f"""
-# SELECT article_id, abstract, section_names 
-# FROM articles 
-# where article_id not in (
-# 	select sas.article_id 
-# 	FROM short_article_summary sas 
-# 	where sas.summary_variant = {summary_variant}
-# ) and article_id < {amount_to_process}
-# order by article_id 
-# LIMIT {amount_to_process};
-# """)
-
 
     results = hook.get_records(sql=query)
 
