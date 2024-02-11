@@ -97,7 +97,7 @@ def test_and_unify_types(parsed_json):
 
     parsed_json["list_of_entities"] = list(set(parsed_json["list_of_entities"]).difference(forbiden_entities))
 
-    parsed_json["list_of_entities"] = remove_references(parsed_json["list_of_entities"])
+    parsed_json["list_of_entities"] = list(parsed_json["list_of_entities"])
     
     assert len(parsed_json["list_of_entities"]) > 0
 
