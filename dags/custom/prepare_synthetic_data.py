@@ -15,6 +15,7 @@ from custom.synthetic_data.inserting_articles import insert_articles
 import os
 
 from custom.synthetic_data.prompt_running.extract_topics_base_on_summaries import generate_topics_from_parts_and_summaries_async
+from custom.synthetic_data.prompt_running.extract_raw_relations import extract_raw_relations
 
 
 try:
@@ -142,8 +143,14 @@ with DAG(
         }
     )
 
+    extract_raw_relations_op = PythonOperator(
+        task_id='extract_raw_relations',
+        python_callable=extract_raw_relations,
+    )
+
     download_dataset >> test_dataset
     download_dataset >> insert_articles
     initialize_database >> insert_articles
     insert_articles >> generate_article_summaries
     generate_article_summaries >> generate_general_categories
+    generate_general_categories >> extract_raw_relations_op
