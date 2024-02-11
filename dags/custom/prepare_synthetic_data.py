@@ -146,6 +146,10 @@ with DAG(
     extract_raw_relations_op = PythonOperator(
         task_id='extract_raw_relations',
         python_callable=extract_raw_relations,
+        op_kwargs={
+            'summary_variant': 0,
+            'topics_variant': 0,
+        }
     )
 
     download_dataset >> test_dataset

@@ -250,15 +250,44 @@ def clean_up_rows(rows):
     return parsed_rows
 
 
-def extract_raw_relations():
+def extract_raw_relations(summary_variant, topics_variant):
     hook = PostgresHook(postgres_conn_id='synthetic_data')
     
-    query = """
+    query = f"""
 select ept.part_id, ept.part_topics, ept.topics_variant, ept.topics_id, ept.article_summary_id 
-from extracted_part_topics ept ;
+from extracted_part_topics ept 
+where ept.topics_variant = {topics_variant} and 
+(ept.part_id not in (select part_id from short_part_summary where summary_variant={summary_variant}) or 
+ept.article_summary_id not in (select article_summary_id from short_part_summary where summary_variant={summary_variant}));
 """
     rows = hook.get_records(query)
 
     cleaned_rows = clean_up_rows(rows)
+
+    hook.insert_rows(
+        table="short_part_summary",
+        rows=[
+            (
+                r['part_id'], 
+                summary_variant, 
+                r['part_topics']['section_description'], 
+                r['article_summary_id']
+            ) for r in cleaned_rows
+        ],
+        replace=False,
+        commit_every=1000,
+        target_fields=["part_id", "summary_variant", "part_summary", "article_summary_id"],
+    )
+
+#     query = f"""
+# select ept.part_id, ept.part_topics, ept.topics_variant, ept.topics_id, ept.article_summary_id 
+# from extracted_part_topics ept 
+# where ept.topics_variant = {topics_variant} and ept.part_id not in (select part_id from short_part_summary) and ept.article_summary_id not in (select article_summary_id from short_part_summary);
+# """
+#     rows = hook.get_records(query)
+
+#     cleaned_rows = clean_up_rows(rows)
+
+
 
     return cleaned_rows[:10]
