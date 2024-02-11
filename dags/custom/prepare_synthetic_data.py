@@ -149,6 +149,7 @@ with DAG(
         op_kwargs={
             'summary_variant': 0,
             'topics_variant': 0,
+            'relations_variant': 0,
         }
     )
 
