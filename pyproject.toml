@@ -24,6 +24,7 @@ apache-airflow-providers-docker = "3.9.1"
 transformers = "^4.36.2"
 datasets = "^2.16.1"
 tiktoken = "^0.5.2"
+jupyter = "^1.0.0"
 
 [build-system]
 requires = ["poetry-core"]
