@@ -18,7 +18,7 @@ def generate_relations_tables(relations_variant):
     query = f"""
 select err.relation_id, err.raw_relation_text 
 from extracted_relations_raw err 
-where err.relations_variant = {relations_variant}
+where err.relations_variant = {relations_variant} and err.relation_id not in (select source_id from relation_objects)
 ;
 """
     rows = hook.get_records(query)
@@ -53,7 +53,7 @@ where err.relations_variant = {relations_variant}
             query = f"""
 select ro.object_id, ro.object_name, ro.source_id 
 from relation_objects ro 
-where ro.object_name in {sql_entities} and ro.source_id = {relation_id}
+where ro.object_name in {sql_entities} and ro.source_id = {relation_id} 
 ;
 """
             
