@@ -11,15 +11,14 @@ The dataset generated with this repository, as well as a backup of the full Post
 
 ## Generated Data
 ### Generation Process
-This data was generated based on the `datasets/scientific_papers` dataset. This dataset contains a list of scientific articles with separate abstracts and lists of contents. Here is the process overview:
+This data was generated based on the `datasets/scientific_papers` dataset. This dataset contains a list of scientific articles with separate `abstracts` and `lists of contents`. Here is the synthetic data generation overview:
 
-1. All the abstracts and lists of contents were inserted into the database.
+1. All the `abstracts` and `lists of contents` were inserted into the database.
 2. The main content of every article was split into overlapping segments of 1k LLaMA tokens with a 200-token overlap.
-3. 10k of the abstracts + lists of contents were summarized by LLaMA 13b.
-4. Generated summaries + split text segments were transformed by LLaMA 13b into unprocessed JSONs.
+3. 10k of the `abstracts` + `lists of contents` were summarized by LLaMA 13b.
+4. Generated `summaries` + `split text segments` were transformed by LLaMA 13b into unprocessed JSONs.
 5. All generated JSONs were validated and cleaned up.
 6. Validated JSONs were reformatted into datasets that may be used for fine-tuning.
-
 
 ### Example of output data
 ```json
@@ -58,7 +57,7 @@ This data was generated based on the `datasets/scientific_papers` dataset. This 
 }
 ```
 
-### Expected output schema
+### Expected output JSON schema
 ```json
 {
   "$schema": "extraction_schema.json",
@@ -114,6 +113,8 @@ This data was generated based on the `datasets/scientific_papers` dataset. This 
 4. I chose `datasets/scientific_papers` as it already provided a good base for summaries (i.e., Abstracts) and did not require me to iteratively summarize all the contents, which would require additional time.
 5. This project does not use ChatGPT or other external APIs; all processing was done locally on 2x3090RTX + some OrangePIs. The goal is to generate a fine-tuned model that can be hosted more cheaply, and also provide the same utility as this two-step LLaMA 13b process. OpenAI does not allow using the results of generation for fine-tuning other models; hence, all this data was generated locally with LLaMA 2, as the license permits improving LLaMA 2 with data generated with LLaMA 2. This is not perfect, but as long as I use `datasets/scientific_papers`, there is still the issue of licensing; it all will need to be regenerated in the future with a more open stack.
 6. The goal is to create a small 3B-7B model that can be used for the task of extracting entities and semantic relations, which may be run on a small ARM board like OrangePI, with minimal cost at a reasonable speed.
+7. I used LLaMA 2 Chat because, in the past, I was able to achieve the most stable results with that model.
+8. I set the temperature to 0.7 to allow the model to infer some missing information and generate better summaries, but the trade-off of using a non-zero temperature is more involved result cleanup. Still, almost 88% of the generated data had a fixable structure.
 
 ## Future Plans for the Project
 1. Fine-tune LLaMA 2 7B with synthetic data (try and evaluate the speed and quality of generation).
@@ -121,8 +122,17 @@ This data was generated based on the `datasets/scientific_papers` dataset. This 
 3. Build a system for mixed querying of the data (I've built a prototype; now, I would like to recreate it as a whole standalone service).
 4. After running it successfully, regenerate data based on the Wikipedia dataset or another fully open-source dataset, and replace LLaMA with a truly open-source model.
 
-### Running project
-## Components Provided by This Project
+
+## Statistics
+1. I ran the generation on 4 instances of LLaMA 2-chat on 2x3090RTX + i7 4790K. The processing averaged around 1 result per minute (either a summary or JSON). The whole process, excluding coding and experimentation, took approximately 20,000 minutes, which is roughly 14 days of compute time, and required about 120 kWh of power. In the near future, I need to upgrade the CPU + RAM to remove that bottleneck.
+```bash
+./run_llm_servers_for_data_generation.sh -n 4 -t 1 -m "models/llama-2-13b-chat.Q4_K_M.gguf" -c 4096 -b 1512
+```
+2. I tested hosting on ARM boards; a 13b model quantized to q4 was able to be hosted with stable speed for an extended time, achieving a speed of 2.34 tokens/s per one OrangePI. With an RTX 3090 paired with my somewhat outdated CPU, an i7 4790K, I was able to achieve up to 20 tokens/s. I have 5 OrangePIs 5 16GB, and by running models on all of them, I achieved around 11.7 tokens/s for approximately 50W of power.
+
+
+## Running the project
+### Components Provided by This Project
 1. Airflow integrated with Celery and Redis.
 2. PostgreSQL 15.
 3. Python 3.11 including libraries such as PyTorch, Langchain, OpenAI, pandas, etc.
@@ -130,7 +140,7 @@ This data was generated based on the `datasets/scientific_papers` dataset. This 
 5. Scripts for building and running Docker containers.
 6. DAG example for connecting with a locally hosted LLM from Airflow using Langchain.
 
-## Prerequisites
+### Prerequisites
 1. Nvidia GPU(s) with sufficient VRAM to run the desired models.
 2. Nvidia drivers with CUDA support for your system.
 3. Run `nvidia-smi` to verify that the drivers are working correctly.
@@ -233,11 +243,3 @@ AIRFLOW_GID=0
 3. Every `DAG` created in the `dags` folder will be visible and usable in `Airflow`.
 4. The `nvtop` package can be used to monitor GPU usage. See [nvtop on GitHub](https://github.com/Syllo/nvtop).
 5. Volumes are already created for storing SQL scripts and raw data (`sql` and `data`). For more complex projects, consider integrating with a service like `S3`.
-
-## Known Limitations
-1. Currently, this template does not support Kubernetes, but it could be added relatively easily.
-2. The template uses default passwords for Airflow and PostgreSQL, which should be changed in `docker-compose.yaml`.
-
-## Credits
-Parts of this template were created based on this tutorial: [coder2j's YouTube tutorial](https://www.youtube.com/watch?v=K9AnJ9_ZAXE) and [coder2j's GitHub repo](https://github.com/coder2j/airflow-docker), along with insights from this [Reddit thread](https://www.reddit.com/r/LocalLLaMA/comments/17ffbg9/using_langchain_with_llamacpp/).
-
