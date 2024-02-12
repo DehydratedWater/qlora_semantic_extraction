@@ -163,3 +163,4 @@ models/
 logs/
 data/
 postgres-db-volume/
+generated_data/
