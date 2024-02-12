@@ -1,8 +1,127 @@
-# Hosting Airflow with Local LLMs
+# Synthetic Data Generator for Pretraining Models
 
 ## Goal of This Project
-This project is intended to serve as a starter project for working with locally hosted Large Language Models (LLMs) using LLama.Cpp. It focuses on running Airflow DAGs that can utilize these locally hosted LLMs in conjunction with Langchain.
+This repository is part of a larger project. The core idea of the project aims at building a system that extracts entities from text with semantic relations between them, and uses these entities for question answering with retrieval. By maintaining a graph of all semantic relations, it is possible to improve the results of the retrieval and make it not only precise but also deep, by providing a way to reason about second, third, ... order causes and effects.
 
+### This Repository
+This part of the project is intended for generating synthetic data that may be used for fine-tuning LLM models. The main use for this data is to prepare smaller, fine-tuned models, for increasing speed and lowering the cost of extracting relations and entities from text.
+
+### Hugging Face
+The dataset generated with this repository, as well as a backup of the full PostgreSQL database, is available at [DehydratedWater42/semantic_relations_extraction](https://huggingface.co/datasets/DehydratedWater42/semantic_relations_extraction)
+
+## Generated Data
+### Generation Process
+This data was generated based on the `datasets/scientific_papers` dataset. This dataset contains a list of scientific articles with separate abstracts and lists of contents. Here is the process overview:
+
+1. All the abstracts and lists of contents were inserted into the database.
+2. The main content of every article was split into overlapping segments of 1k LLaMA tokens with a 200-token overlap.
+3. 10k of the abstracts + lists of contents were summarized by LLaMA 13b.
+4. Generated summaries + split text segments were transformed by LLaMA 13b into unprocessed JSONs.
+5. All generated JSONs were validated and cleaned up.
+6. Validated JSONs were reformatted into datasets that may be used for fine-tuning.
+
+
+### Example of output data
+```json
+{
+  "section_description": "This paper focuses on additive models and their role in semiparametric statistics. The authors provide learning rates for regularized kernel-based methods for additive models, which compare favorably to recent results on optimal learning rates for purely nonparametric regularized kernel-based quantile regression.",
+  "list_of_entities": [
+    "learning rates",
+    "nonparametric",
+    "additive models",
+    "kernel-based methods",
+    "semiparametric statistics",
+    "quantile regression"
+  ],
+  "relations": [
+    {
+      "description": "compares favorably to recent results on optimal learning rates for purely nonparametric regularized kernel-based quantile regression.",
+      "source_entities": [
+        "learning rates"
+      ],
+      "target_entities": [
+        "quantile regression"
+      ],
+      "strength": "strong"
+    },
+    {
+      "description": "focuses on additive models and their role in semiparametric statistics.",
+      "source_entities": [
+        "additive models"
+      ],
+      "target_entities": [
+        "semiparametric statistics"
+      ],
+      "strength": "strong"
+    }
+  ]
+}
+```
+
+### Expected output schema
+```json
+{
+  "$schema": "extraction_schema.json",
+  "type": "object",
+  "properties": {
+    "section_description": {
+      "type": "string"
+    }
+    "list_of_entities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "relations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "source_entities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "target_entities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "strength": {
+            "type": "string",
+            "enum": ["strong", "moderate", "weak"]
+          }
+        },
+        "required": ["description", "source_entities", "target_entities"]
+      }
+    },
+    
+  },
+  "required": ["list_of_entities", "relations", "section_description"]
+}
+```
+
+## Decisions
+1. I used Airflow because I had previously prepared a template that allowed me to run Airflow pipelines with local LLMs.
+2. There is a whole section of the database with extracted relations and entities, mostly for estimating the connectivity and scale of the extracted data.
+3. The final dataset is being created with `jupyters/02_export_data.ipynb`; it was just quicker than adding a new volume to the docker-compose.
+4. I chose `datasets/scientific_papers` as it already provided a good base for summaries (i.e., Abstracts) and did not require me to iteratively summarize all the contents, which would require additional time.
+5. This project does not use ChatGPT or other external APIs; all processing was done locally on 2x3090RTX + some OrangePIs. The goal is to generate a fine-tuned model that can be hosted more cheaply, and also provide the same utility as this two-step LLaMA 13b process. OpenAI does not allow using the results of generation for fine-tuning other models; hence, all this data was generated locally with LLaMA 2, as the license permits improving LLaMA 2 with data generated with LLaMA 2. This is not perfect, but as long as I use `datasets/scientific_papers`, there is still the issue of licensing; it all will need to be regenerated in the future with a more open stack.
+6. The goal is to create a small 3B-7B model that can be used for the task of extracting entities and semantic relations, which may be run on a small ARM board like OrangePI, with minimal cost at a reasonable speed.
+
+## Future Plans for the Project
+1. Fine-tune LLaMA 2 7B with synthetic data (try and evaluate the speed and quality of generation).
+2. Generate more synthetic data, clean it, and fine-tune the model further.
+3. Build a system for mixed querying of the data (I've built a prototype; now, I would like to recreate it as a whole standalone service).
+4. After running it successfully, regenerate data based on the Wikipedia dataset or another fully open-source dataset, and replace LLaMA with a truly open-source model.
+
+### Running project
 ## Components Provided by This Project
 1. Airflow integrated with Celery and Redis.
 2. PostgreSQL 15.
