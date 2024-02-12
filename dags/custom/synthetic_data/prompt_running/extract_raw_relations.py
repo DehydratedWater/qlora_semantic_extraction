@@ -64,20 +64,20 @@ def test_and_unify_types(parsed_json):
                 strength = {relation[key]}
 
             if description not in fixed_relations:
-                fixed_relations["description"] = {
+                fixed_relations[description] = {
                     "description": description,
                     "source_entities": source_entities,
                     "target_entities": target_entities,
                     "strength": strength
                 }
             else:
-                fixed_relations["description"]["source_entities"].update(source_entities)
-                fixed_relations["description"]["target_entities"].update(target_entities)
-                fixed_relations["description"]["strength"].update(strength)
+                fixed_relations[description]["source_entities"].update(source_entities)
+                fixed_relations[description]["target_entities"].update(target_entities)
+                fixed_relations[description]["strength"].update(strength)
 
 
             if "dopamine" in description or "adenosine" in description:
-                del fixed_relations["description"]
+                del fixed_relations[description]
                 continue
 
             parsed_json["list_of_entities"].extend(list(source_entities))

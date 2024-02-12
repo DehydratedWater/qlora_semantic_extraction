@@ -16,6 +16,7 @@ import os
 
 from custom.synthetic_data.prompt_running.extract_topics_base_on_summaries import generate_topics_from_parts_and_summaries_async
 from custom.synthetic_data.prompt_running.extract_raw_relations import extract_raw_relations
+from custom.synthetic_data.prompt_running.generate_relation_tables import generate_relations_tables
 
 
 try:
@@ -153,9 +154,20 @@ with DAG(
         }
     )
 
+    generate_relations_tables_op = PythonOperator(
+        task_id='generate_relations_tables',
+        python_callable=generate_relations_tables,
+        op_kwargs={
+            'relations_variant': 0,
+        }
+    )
+
+
+
     download_dataset >> test_dataset
     download_dataset >> insert_articles
     initialize_database >> insert_articles
     insert_articles >> generate_article_summaries
     generate_article_summaries >> generate_general_categories
     generate_general_categories >> extract_raw_relations_op
+    extract_raw_relations_op >> generate_relations_tables_op
