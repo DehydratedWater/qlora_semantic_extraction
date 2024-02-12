@@ -1,0 +1,31 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: Semantic relations extraction
+message: >-
+  If you use this dataset, please cite it using the metadata
+  from this file.
+type: dataset
+authors:
+  - given-names: Ignacy Łukasz
+    family-names: Daszkiewicz
+    email: ignacy.daszkiewicz@gmail.com
+repository-code: >-
+  https://github.com/DehydratedWater/qlora_semantic_extraction
+repository: >-
+  https://huggingface.co/datasets/DehydratedWater42/semantic_relations_extraction
+abstract: >-
+  This project introduces a dataset designed for fine-tuning
+  NLP models to improve semantic relation extraction between
+  entities, addressing the need for both high accuracy and
+  operational efficiency in NLP applications. By focusing on
+  reducing computational costs and enhancing processing
+  speed, the dataset aims to support the development of more
+  cost-effective and agile NLP models. This contribution
+  offers a valuable resource for advancing NLP technologies
+  in efficiently understanding complex textual relationships
+  while optimizing resource use.
+license: Apache-2.0
+version: '1.0'
+date-released: '2024-02-12'

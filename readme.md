@@ -1,4 +1,4 @@
-# Synthetic Data Generator for Pretraining Models
+# Synthetic Data Creation Tool for Model Refinement
 
 ## Goal of This Project
 This repository is part of a larger project. The core idea of the project aims at building a system that extracts entities from text with semantic relations between them, and uses these entities for question answering with retrieval. By maintaining a graph of all semantic relations, it is possible to improve the results of the retrieval and make it not only precise but also deep, by providing a way to reason about second, third, ... order causes and effects.
