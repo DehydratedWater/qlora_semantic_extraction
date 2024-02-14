@@ -23,37 +23,65 @@ This data was generated based on the `datasets/scientific_papers` dataset. This 
 ### Example of output data
 ```json
 {
-  "section_description": "This paper focuses on additive models and their role in semiparametric statistics. The authors provide learning rates for regularized kernel-based methods for additive models, which compare favorably to recent results on optimal learning rates for purely nonparametric regularized kernel-based quantile regression.",
-  "list_of_entities": [
-    "learning rates",
-    "nonparametric",
-    "additive models",
-    "kernel-based methods",
-    "semiparametric statistics",
-    "quantile regression"
-  ],
-  "relations": [
-    {
-      "description": "compares favorably to recent results on optimal learning rates for purely nonparametric regularized kernel-based quantile regression.",
-      "source_entities": [
-        "learning rates"
-      ],
-      "target_entities": [
-        "quantile regression"
-      ],
-      "strength": "strong"
-    },
-    {
-      "description": "focuses on additive models and their role in semiparametric statistics.",
-      "source_entities": [
-        "additive models"
-      ],
-      "target_entities": [
-        "semiparametric statistics"
-      ],
-      "strength": "strong"
-    }
-  ]
+    "section_description": "The article discusses the current reversal phenomenon in a classical deterministic ratchet system. The authors investigate the relationship between current and bifurcation diagrams, focusing on the dynamics of an ensemble of particles. They challenge Mateos' claim that current reversals occur only with bifurcations and present evidence for current reversals without bifurcations. Additionally, they show that bifurcations can occur without current reversals. The study highlights the importance of considering the characteristics of the ensemble in understanding the behavior of the system. The authors provide numerical evidence to support their claims and suggest that correlating abrupt changes in the current with bifurcations is more appropriate than focusing solely on current reversals.",
+    "list_of_entities": [
+        "reversals",
+        "mateos",
+        "figures",
+        "rules",
+        "current_reversal",
+        "ensemble",
+        "bifurcation",
+        "jumps",
+        "thumb",
+        "spikes",
+        "current",
+        "particles",
+        "open_question",
+        "behavior",
+        "heuristics",
+        "direction",
+        "chaotic",
+        "parameter"
+    ],
+    "relations": [
+        {
+            "description": "bifurcations in single - trajectory behavior often corresponds to sudden spikes or jumps in the current for an ensemble in the same system",
+            "source_entities": [
+                "bifurcation"
+            ],
+            "target_entities": [
+                "current"
+            ]
+        },
+        {
+            "description": "current reversals are a special case of this",
+            "source_entities": [
+                "current"
+            ],
+            "target_entities": [
+                "bifurcation"
+            ]
+        },
+        {
+            "description": "not all spikes or jumps correspond to a bifurcation",
+            "source_entities": [
+                "spikes"
+            ],
+            "target_entities": [
+                "bifurcation"
+            ]
+        },
+        {
+            "description": "the open question is clearly to figure out if the reason for when these rules are violated or are valid can be made more concrete",
+            "source_entities": [
+                "current"
+            ],
+            "target_entities": [
+                "open_question"
+            ]
+        }
+    ]
 }
 ```
 
